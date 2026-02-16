@@ -1,0 +1,64 @@
+name: Deploy to Production
+
+# ONLY run after code merges to main
+on:
+  push:
+    branches: [ main ]  # Trigger on push to main
+
+# One job to rule them all
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production  # Requires approval (safety!)
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+    
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Build, tag, and push Flask image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: emberalert-flask
+        IMAGE_TAG: ${{ github.sha }}  # Git commit hash as tag
+      run: |
+        docker build -f docker/Dockerfile.flask \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+    
+    - name: Build, tag, and push Spring image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: emberalert-spring
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -f docker/Dockerfile.spring \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+    
+    - name: Deploy to ECS
+      run: |
+        echo "Deploying to production..."
+        # This would update your ECS service
+        # aws ecs update-service --cluster prod --service backend --force-new-deployment
+    
+    - name: Health check
+      run: |
+        echo "Waiting for deployment to stabilize..."
+        sleep 30
+        curl -f http://api.emberalert.com/health || exit 1
