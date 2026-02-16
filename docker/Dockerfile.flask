@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+# Start from official Python image (small version)
+
+WORKDIR /app
+# Create and move to /app folder inside container
+
+# Install dependencies
+COPY requirements.txt .
+# Copy package list from your computer into container
+
+RUN pip install --no-cache-dir -r requirements.txt
+# Install all Python packages inside container
+
+# Copy application
+COPY api_service/app ./app
+# Copy your Flask code into /app/app folder
+
+COPY ml_service/saved_models ./models
+# Copy trained model into /app/models folder
+
+EXPOSE 5000
+# Tell Docker this app uses port 5000 (documentation only)
+
+ENV MODEL_PATH=/app/models/fire_risk_xgboost_v1.pkl
+# Set environment variable so Flask knows where model is
+
+CMD ["python", "-m", "flask", "--app", "app.main:create_app()", "run", "--host=0.0.0.0"]
+# Start Flask server when container runs
+# --host=0.0.0.0 allows connections from anywhere

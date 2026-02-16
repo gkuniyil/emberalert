@@ -1,0 +1,57 @@
+version: '3.8'
+# Docker Compose file format version
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: emberalert-postgres
+    environment:
+      POSTGRES_DB: emberalert
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"  # host:container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/init.sql  # Auto-create tables
+    networks:
+      - emberalert-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]  # Check if DB is ready
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine  # Small Redis image
+    container_name: emberalert-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - emberalert-network
+
+  flask-api:
+    build:
+      context: ..  # Build from parent directory (project root)
+      dockerfile: docker/Dockerfile.flask
+    container_name: emberalert-flask
+    environment:
+      - REDIS_HOST=redis  # Redis hostname = service name
+      - DB_HOST=postgres  # Postgres hostname = service name
+      - MODEL_PATH=/app/models/fire_risk_xgboost_v1.pkl
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy  # Wait for Postgres to be ready
+    networks:
+      - emberalert-network
+    volumes:
+      - ../ml_service/saved_models:/app/models:ro  # Mount models (read-only)
+
+networks:
+  emberalert-network:
+    driver: bridge  # Private network for containers to talk to each other
+
+volumes:
+  postgres_data:  # Named volume for database persistence

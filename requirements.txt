@@ -1,0 +1,17 @@
+# Data Processing
+pandas==2.3.1      #  data cleaning/analysis
+numpy==1.26.2      #fast number calculations
+
+# Database
+psycopg2-binary==2.9.10    # 🗝️ allows Python talk to PostgreSQL
+sqlalchemy==2.0.23        # write Python instead of SQL
+
+# API & HTTP
+requests==2.32.3          # gets data from websites/APIs
+python-dotenv==1.0.0      # loads passwords from .env file
+
+# Redis (for caching - future use)
+redis==5.0.1              #super fast temporary storage
+
+# Utilities
+pydantic==2.10.6           # ensures data is correct format
