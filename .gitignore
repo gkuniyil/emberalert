@@ -10,7 +10,6 @@ target/
 *.jar
 *.war
 *.log
-.mvn/
 
 # IDE
 .vscode/
@@ -19,6 +18,3 @@ target/
 
 # Docker
 *.log
-# Allow maven-wrapper.jar for CI
-!backend_service/.mvn/wrapper/maven-wrapper.jar
-# Allow maven-wrapper.jar for CI
