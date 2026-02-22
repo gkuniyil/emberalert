@@ -102,7 +102,6 @@ class BatchPredictionRequest(BaseModel):
     
     predictions: List[PredictionRequest] = Field(
         ...,
-        max_length=100,  # Limit batch size
         description="List of prediction requests"
     )
 
