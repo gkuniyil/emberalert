@@ -5,7 +5,7 @@ WORKDIR /app
 # Create and move to /app folder inside container
 
 # Install dependencies
-COPY requirements.txt .
+COPY ml_service/requirements.txt .
 # Copy package list from your computer into container
 
 RUN pip install --no-cache-dir -r requirements.txt
