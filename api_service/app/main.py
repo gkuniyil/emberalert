@@ -44,4 +44,6 @@ def create_app():
             }
         }
     
+    # Add this at the very bottom of the file
+    app = create_app()  
     return app
