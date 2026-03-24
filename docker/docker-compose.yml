@@ -40,7 +40,7 @@ services:
       - DB_HOST=postgres  # Postgres hostname = service name
       - MODEL_PATH=/app/models/fire_risk_xgboost_v1.pkl
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       postgres:
         condition: service_healthy  # Wait for Postgres to be ready
